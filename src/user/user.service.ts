@@ -80,7 +80,10 @@ export class UserService {
 
         try {
 
-            const payload = { id: user?.id, email: user?.email }
+            const payload = {
+                id: user.id,
+                email: user.email
+            }
 
             let jwtToken = await this.jwtService.signAsync(payload, {
                 privateKey: process.env.JWT_SECRET,

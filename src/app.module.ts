@@ -3,11 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    UserModule
+    UserModule,
+    TaskModule
   ],
   controllers: [AppController],
   providers: [AppService],
