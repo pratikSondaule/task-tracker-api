@@ -21,4 +21,22 @@ model user {
   password   String
   created_at DateTime  @default(now())
   updated_at DateTime?
+  tasks      task[]
+}
+
+model task {
+  id            String     @id @default(cuid())
+  title         String
+  description   String
+  status        TaskStatus @default(PENDING)
+  created_by    user       @relation(fields: [created_by_id], references: [id])
+  created_by_id String
+  created_at    DateTime   @default(now())
+  updated_at    DateTime?
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
