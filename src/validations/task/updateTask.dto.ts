@@ -4,7 +4,7 @@ import { IsOptional, IsString } from "class-validator";
 
 export class UpdateTaskDto {
 
-    @ApiProperty({ example: "Upd Task" })
+    @ApiProperty({ example: "Updated Task" })
     @IsString()
     @IsOptional()
     title: string
