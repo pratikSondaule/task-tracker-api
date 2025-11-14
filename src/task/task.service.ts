@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { TaskStatus } from '@prisma/client';
 import { PrismaService } from 'src/services/prisma.service';
 import { CreateTaskDto } from 'src/validations/task/createTask.dto';
 import { UpdateTaskDto } from 'src/validations/task/updateTask.dto';
@@ -51,7 +52,7 @@ export class TaskService {
     }
 
 
-    async getUserTasks(request: any) {
+    async getUserTasks(request: any, status: string, page: number, limit: number) {
 
         console.log("User ", request.user)
 
@@ -67,18 +68,43 @@ export class TaskService {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND)
         }
 
+        let statusFilter: TaskStatus | undefined
+
+        if (status && status == 'pending') {
+            statusFilter = TaskStatus.PENDING
+        } else if (status && status == 'in-progress') {
+            statusFilter = TaskStatus.IN_PROGRESS
+        } else if (status && status == 'completed') {
+            statusFilter = TaskStatus.COMPLETED
+        }
+
+        let pageNumber = page ? page : 1
+        let limitNumber = limit ? limit : 10
+
         try {
 
             const getUserTask = await this.prisma.task.findMany({
                 where: {
-                    created_by_id: user?.id
-                }
+                    created_by_id: user?.id,
+                    status: statusFilter
+                },
+                take: limitNumber,
+                skip: (pageNumber - 1) * limitNumber,
             })
+
+            const totalTaskCount = getUserTask.length
+
+            const totalPages = Math.ceil(totalTaskCount / limitNumber)
 
             return {
                 statusCode: HttpStatus.OK,
-                message: "Fetched all tasks successfully",
-                tasks: getUserTask
+                tasks: getUserTask,
+                currentPage: pageNumber,
+                hasNextPage: pageNumber < totalPages ? pageNumber + 1 : null,
+                hasPreviousPage: pageNumber > 1,
+                lastPage: totalPages,
+                totalTasks: totalTaskCount,
+                message: "Fetched all tasks successfully"
             }
 
         } catch (error) {
@@ -195,4 +221,5 @@ export class TaskService {
             throw new HttpException('Something went wrong while deleting task', HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
+
 }

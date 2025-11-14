@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from 'src/validations/task/createTask.dto';
 import { UpdateTaskDto } from 'src/validations/task/updateTask.dto';
 import { AuthGuard } from 'src/guards/auth/auth.guard';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -27,9 +27,17 @@ export class TaskController {
 
     @ApiOperation({ summary: "Fetch all tasks of logged-in user" })
     @UseGuards(AuthGuard)
+    @ApiQuery({ name: 'status', required: false, description: 'Filter with any one status [ pending, in-progress, completed ]' })
+    @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination' })
+    @ApiQuery({ name: 'limit', required: false, description: 'Maximum number of records to fetch per page' })
     @Get('get-all')
-    async getUserTasks(@Req() request: Request) {
-        return await this.taskService.getUserTasks(request)
+    async getUserTasks(
+        @Req() request: Request,
+        @Query('status') status: string,
+        @Query('page', new ParseIntPipe({ optional: true })) page: number,
+        @Query('limit', new ParseIntPipe({ optional: true })) limit: number,
+    ) {
+        return await this.taskService.getUserTasks(request, status, page, limit)
     }
 
 
