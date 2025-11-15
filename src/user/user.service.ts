@@ -4,6 +4,7 @@ import { CreateUserDto } from 'src/validations/user/createUser.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SigninUserDto } from 'src/validations/user/signinUser.dto';
+import { InviteStatus } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -44,6 +45,15 @@ export class UserService {
 
             const createUser = await this.prisma.user.create({
                 data: userData
+            })
+
+            await this.prisma.invite_collaborator.updateMany({
+                where: {
+                    email: data?.email
+                },
+                data: {
+                    invite_status: InviteStatus.ACCEPTED
+                }
             })
 
             return {
