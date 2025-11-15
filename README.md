@@ -34,6 +34,8 @@ npm install
 DATABASE_URL="your_postgres_database_url"
 PORT=3000
 JWT_SECRET="your_jwt_secret"
+SMTP_EMAIL="your_smtp_email"
+SMTP_PASSWORD="your_smtp_password"
 ```
 ### 4. Run database migrations
 ```bash
