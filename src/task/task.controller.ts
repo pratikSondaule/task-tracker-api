@@ -4,6 +4,7 @@ import { CreateTaskDto } from 'src/validations/task/createTask.dto';
 import { UpdateTaskDto } from 'src/validations/task/updateTask.dto';
 import { AuthGuard } from 'src/guards/auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { InviteCollaboratorDto } from 'src/validations/task/inviteCollaborator.dto';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -69,6 +70,22 @@ export class TaskController {
         @Param('task_id') task_id: string,
     ) {
         return await this.taskService.deleteTask(request, task_id)
+    }
+
+
+    @ApiOperation({ summary: "Invite someone to collaborate on your task using their email" })
+    @UseGuards(AuthGuard)
+    @ApiParam({
+        name: 'task_id',
+        type: String
+    })
+    @Post('invite-collaborator/:task_id')
+    async inviteCollaborator(
+        @Req() request: Request,
+        @Param('task_id') task_id: string,
+        @Body() data: InviteCollaboratorDto
+    ) {
+        return await this.taskService.inviteCollaborator(request, task_id, data)
     }
 
 }
