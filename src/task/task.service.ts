@@ -35,6 +35,7 @@ export class TaskService {
             const taskData = {
                 title: data?.title,
                 description: data?.description,
+                priority: data?.priority,
                 created_by_id: user.id
             }
 

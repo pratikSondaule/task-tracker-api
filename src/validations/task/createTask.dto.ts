@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { TaskPriority } from "@prisma/client";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateTaskDto {
 
@@ -13,4 +14,8 @@ export class CreateTaskDto {
     @IsNotEmpty()
     description: string
 
+    @ApiProperty({ example: "LOW | MEDIUM | HIGH " })
+    @IsEnum(TaskPriority)
+    @IsOptional()
+    priority: TaskPriority
 }
