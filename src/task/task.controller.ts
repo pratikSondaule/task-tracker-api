@@ -28,17 +28,19 @@ export class TaskController {
 
     @ApiOperation({ summary: "Fetch all tasks of logged-in user" })
     @UseGuards(AuthGuard)
+    @ApiQuery({ name: 'priority', required: false, description: 'Filter with any one priority [ low, medium, high ]' })
     @ApiQuery({ name: 'status', required: false, description: 'Filter with any one status [ pending, in-progress, completed ]' })
     @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination' })
     @ApiQuery({ name: 'limit', required: false, description: 'Number of records to fetch per page' })
     @Get('get-all')
     async getUserTasks(
         @Req() request: Request,
+        @Query('priority') priority: string,
         @Query('status') status: string,
         @Query('page', new ParseIntPipe({ optional: true })) page: number,
         @Query('limit', new ParseIntPipe({ optional: true })) limit: number,
     ) {
-        return await this.taskService.getUserTasks(request, status, page, limit)
+        return await this.taskService.getUserTasks(request, priority, status, page, limit)
     }
 
 

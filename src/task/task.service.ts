@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { TaskStatus } from '@prisma/client';
+import { TaskPriority, TaskStatus } from '@prisma/client';
 import { PrismaService } from 'src/services/prisma.service';
 import { SendMailService } from 'src/services/sendMail.service';
 import { CreateTaskDto } from 'src/validations/task/createTask.dto';
@@ -56,7 +56,7 @@ export class TaskService {
     }
 
 
-    async getUserTasks(request: any, status: string, page: number, limit: number) {
+    async getUserTasks(request: any, priority: string, status: string, page: number, limit: number) {
 
         console.log("User ", request.user)
 
@@ -70,6 +70,16 @@ export class TaskService {
 
         if (!user) {
             throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        }
+
+        let priorityFilter: TaskPriority | undefined
+
+        if (priority && priority == 'low') {
+            priorityFilter = TaskPriority.LOW
+        } else if (priority && priority == 'medium') {
+            priorityFilter = TaskPriority.MEDIUM
+        } else if (priority && priority == 'high') {
+            priorityFilter = TaskPriority.HIGH
         }
 
         let statusFilter: TaskStatus | undefined
@@ -90,6 +100,7 @@ export class TaskService {
             const getUserTask = await this.prisma.task.findMany({
                 where: {
                     created_by_id: user?.id,
+                    priority: priorityFilter,
                     status: statusFilter
                 },
                 take: limitNumber,
@@ -99,6 +110,7 @@ export class TaskService {
             const totalTaskCount = await this.prisma.task.count({
                 where: {
                     created_by_id: user?.id,
+                    priority: priorityFilter,
                     status: statusFilter
                 }
             })
@@ -159,6 +171,7 @@ export class TaskService {
             const updateUserTaskData = {
                 title: data?.title,
                 description: data?.description,
+                priority: data?.priority,
                 status: data?.status
             }
 
