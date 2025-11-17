@@ -81,8 +81,8 @@ export class TaskService {
             statusFilter = TaskStatus.COMPLETED
         }
 
-        let pageNumber = page ? page : 1
-        let limitNumber = limit ? limit : 10
+        let pageNumber = page || 1
+        let limitNumber = limit || 10
 
         try {
 
@@ -95,7 +95,12 @@ export class TaskService {
                 skip: (pageNumber - 1) * limitNumber,
             })
 
-            const totalTaskCount = getUserTask.length
+            const totalTaskCount = await this.prisma.task.count({
+                where: {
+                    created_by_id: user?.id,
+                    status: statusFilter
+                }
+            })
 
             const totalPages = Math.ceil(totalTaskCount / limitNumber)
 

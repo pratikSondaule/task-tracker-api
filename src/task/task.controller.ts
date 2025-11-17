@@ -30,7 +30,7 @@ export class TaskController {
     @UseGuards(AuthGuard)
     @ApiQuery({ name: 'status', required: false, description: 'Filter with any one status [ pending, in-progress, completed ]' })
     @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination' })
-    @ApiQuery({ name: 'limit', required: false, description: 'Maximum number of records to fetch per page' })
+    @ApiQuery({ name: 'limit', required: false, description: 'Number of records to fetch per page' })
     @Get('get-all')
     async getUserTasks(
         @Req() request: Request,

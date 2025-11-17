@@ -47,15 +47,6 @@ export class UserService {
                 data: userData
             })
 
-            await this.prisma.invite_collaborator.updateMany({
-                where: {
-                    email: data?.email
-                },
-                data: {
-                    invite_status: InviteStatus.ACCEPTED
-                }
-            })
-
             return {
                 statusCode: HttpStatus.CREATED,
                 message: "Signup successfully",
@@ -108,6 +99,133 @@ export class UserService {
         } catch (error) {
             console.log(error)
             throw new HttpException('Something went wrong in signin', HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
+
+
+    async getInvites(request: any, page: number, limit: number) {
+
+        console.log("User ", request.user)
+
+        const { id: loggedInUserId } = request.user
+
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: loggedInUserId
+            }
+        })
+
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        }
+
+        let pageNumber = page || 1
+        let limitNumber = limit || 10
+
+        try {
+            const getInvites = await this.prisma.invite_collaborator.findMany({
+                where: {
+                    email: user.email,
+                    invite_status: InviteStatus.PENDING
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    invite_status: true,
+                    invited_by: {
+                        select: {
+                            first_name: true,
+                            last_name: true,
+                            email: true
+                        }
+                    },
+                    task: {
+                        select: {
+                            title: true,
+                            description: true,
+                            status: true
+                        }
+                    }
+                },
+                take: limitNumber,
+                skip: (pageNumber - 1) * limitNumber,
+            })
+
+            const totalInviteCount = await this.prisma.invite_collaborator.count({
+                where: {
+                    email: user.email,
+                    invite_status: InviteStatus.PENDING
+                }
+            })
+
+            const totalPages = Math.ceil(totalInviteCount / limitNumber)
+
+            return {
+                status: HttpStatus.OK,
+                invites: getInvites,
+                currentPage: pageNumber,
+                hasNextPage: pageNumber < totalPages ? pageNumber + 1 : null,
+                hasPreviousPage: pageNumber > 1,
+                lastPage: totalPages,
+                totalInvites: totalInviteCount,
+                message: "Fetched all invites successfully"
+            }
+
+        } catch (error) {
+            console.log(error)
+            throw new HttpException('Something went wrong fetching invites', HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+
+    }
+
+
+    async acceptInvites(request: any, invite_id: string) {
+
+        console.log("User ", request.user)
+
+        const { id: loggedInUserId } = request.user
+
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: loggedInUserId
+            }
+        })
+
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        }
+
+        const getInvite = await this.prisma.invite_collaborator.findFirst({
+            where: {
+                id: invite_id,
+                invite_status: InviteStatus.PENDING
+            }
+        })
+
+        if (!getInvite) {
+            throw new HttpException('Invitation already accepted or does not exist', HttpStatus.NOT_FOUND)
+        }
+
+        try {
+
+            await this.prisma.invite_collaborator.update({
+                where: {
+                    id: getInvite.id
+                },
+                data: {
+                    invite_status: InviteStatus.ACCEPTED
+                }
+            })
+
+            return {
+                statusCode: HttpStatus.OK,
+                message: "Collaboration invite accepted successfully"
+            }
+
+        } catch (error) {
+            console.log(error)
+            throw new HttpException('Something went wrong accepting invites', HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
     }
