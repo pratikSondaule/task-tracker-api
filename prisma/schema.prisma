@@ -30,6 +30,7 @@ model task {
   title               String
   description         String
   status              TaskStatus            @default(PENDING)
+  priority            TaskPriority          @default(LOW)
   created_by          user                  @relation(fields: [created_by_id], references: [id])
   created_by_id       String
   created_at          DateTime              @default(now())
@@ -48,6 +49,12 @@ model invite_collaborator {
   invited_at    DateTime     @default(now())
 
   @@unique([task_id, email])
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 enum InviteStatus {
