@@ -23,6 +23,7 @@ model user {
   updated_at          DateTime?
   tasks               task[]
   inviteCollaborators invite_collaborator[]
+  taskCollaborators   task_collaborator[]
 }
 
 model task {
@@ -36,6 +37,17 @@ model task {
   created_at          DateTime              @default(now())
   updated_at          DateTime?
   inviteCollaborators invite_collaborator[]
+  taskCollaborators   task_collaborator[]
+}
+
+model task_collaborator {
+  id      String @id @default(cuid())
+  task    task   @relation(fields: [task_id], references: [id])
+  task_id String
+  user    user   @relation(fields: [user_id], references: [id])
+  user_id String
+
+  @@unique([task_id, user_id])
 }
 
 model invite_collaborator {

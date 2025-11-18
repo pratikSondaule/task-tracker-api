@@ -209,7 +209,7 @@ export class UserService {
 
         try {
 
-            await this.prisma.invite_collaborator.update({
+            const acceptInvite = await this.prisma.invite_collaborator.update({
                 where: {
                     id: getInvite.id
                 },
@@ -217,6 +217,15 @@ export class UserService {
                     invite_status: InviteStatus.ACCEPTED
                 }
             })
+
+            if (acceptInvite) {
+                await this.prisma.task_collaborator.create({
+                    data: {
+                        task_id: getInvite.task_id,
+                        user_id: user.id
+                    }
+                })
+            }
 
             return {
                 statusCode: HttpStatus.OK,
