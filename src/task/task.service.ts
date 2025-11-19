@@ -99,7 +99,18 @@ export class TaskService {
 
             const getUserTask = await this.prisma.task.findMany({
                 where: {
-                    created_by_id: user?.id,
+                    OR: [
+                        {
+                            created_by_id: user?.id,
+                        },
+                        {
+                            taskCollaborators: {
+                                some: {
+                                    user_id: user?.id
+                                }
+                            }
+                        }
+                    ],
                     priority: priorityFilter,
                     status: statusFilter
                 },
@@ -223,7 +234,7 @@ export class TaskService {
         }
 
         if (getTaskById.created_by_id !== user.id) {
-            throw new HttpException("This user can't delete this task", HttpStatus.BAD_REQUEST)
+            throw new HttpException("You don't have access to delete this task", HttpStatus.BAD_REQUEST)
         }
 
         try {
@@ -313,6 +324,68 @@ export class TaskService {
             throw new HttpException('Something went wrong while inviting a collaborator', HttpStatus.INTERNAL_SERVER_ERROR)
         }
 
+    }
+
+
+    async getTaskCollaborators(request: any, task_id: string) {
+
+        console.log("User ", request.user)
+
+        const { id: loggedInUserId } = request.user
+
+        const user = await this.prisma.user.findUnique({
+            where: {
+                id: loggedInUserId
+            }
+        })
+
+        if (!user) {
+            throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+        }
+
+        const getTaskById = await this.prisma.task.findUnique({
+            where: {
+                id: task_id
+            }
+        })
+
+        if (!getTaskById) {
+            throw new HttpException('Task not found', HttpStatus.NOT_FOUND)
+        }
+
+        try {
+
+            const collaborators = await this.prisma.task_collaborator.findMany({
+                where: {
+                    task_id: getTaskById.id
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            first_name: true,
+                            last_name: true,
+                            email: true
+                        }
+                    }
+                }
+            })
+
+            const response = {
+                task_id: getTaskById.id,
+                users: collaborators.map((el) => (el.user))
+            }
+
+            return {
+                statusCode: HttpStatus.OK,
+                collaborators: response,
+                message: "Fetched all the task collaborators successfully"
+            }
+
+        } catch (error) {
+            console.log(error)
+            throw new HttpException('Something went wrong while fetching collaborators', HttpStatus.INTERNAL_SERVER_ERROR)
+        }
     }
 
 }

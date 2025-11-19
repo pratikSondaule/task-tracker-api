@@ -90,4 +90,19 @@ export class TaskController {
         return await this.taskService.inviteCollaborator(request, task_id, data)
     }
 
+
+    @ApiOperation({ summary: "Fetch all task collaborators" })
+    @UseGuards(AuthGuard)
+    @ApiParam({
+        name: 'task_id',
+        type: String
+    })
+    @Get('collaborators/:task_id')
+    async getTaskCollaborators(
+        @Req() request: Request,
+        @Param('task_id') task_id: string
+    ) {
+        return await this.taskService.getTaskCollaborators(request, task_id)
+    }
+
 }
